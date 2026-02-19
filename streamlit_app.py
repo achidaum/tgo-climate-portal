@@ -12,78 +12,56 @@ if "GOOGLE_API_KEY" in st.secrets:
         model = genai.GenerativeModel('gemini-pro')
     except Exception:
         st.error("การเชื่อมต่อ AI ขัดข้อง")
-else:
-    st.warning("กรุณาตั้งค่า GOOGLE_API_KEY ใน Secrets เพื่อใช้งาน AI Chat")
 
-# 3. ปรับแต่ง CSS
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
-    html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
-    .stButton>button {
-        width: 100%; border-radius: 15px; height: 100px;
-        font-size: 20px; font-weight: bold; transition: 0.3s;
-        background-color: white; color: #2e7d32; border: 2px solid #e0e0e0;
-    }
-    .stButton>button:hover { 
-        transform: translateY(-5px); border: 2px solid #2e7d32; 
-        background-color: #f1f8e9;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# 3. ส่วนหัวข้อ (Header)
+st.title("🌱 บริการแนะนำ")
 
-# 4. ส่วนหัวข้อ
-st.title("🌱 TGO Climate & GHG Portal")
-st.markdown("#### ศูนย์รวมเครื่องมือจัดการก๊าซเรือนกระจกและคาร์บอนเครดิต")
-st.write("---")
+# ส่วนแถบสีน้ำเงินแจ้งข้อมูล (Banner)
+st.info("🌿 **Thai Carbon Daily Tracker** | เป้าหมายลดผลกระทบจากการใช้ชีวิตประจำวัน เพื่อลดปัญหาภาวะโลกร้อน")
+st.warning("🔍 เกณฑ์การประเมิน: อิงตามค่าเฉลี่ยประชากรไทยที่ปล่อยก๊าซประมาณ 10.4 kgCO2e ต่อวัน")
 
-# 5. เมนู Dashboard
-st.subheader("🍃 บริการแนะนำ")
+# 4. ส่วนระบบประเมิน (แบ่ง 2 คอลัมน์ตามรูป)
+col_left, col_right = st.columns(2)
 
-with stylable_container(key="highlight", css_styles="button {background-color: #e8f5e9; border: 2px solid #2e7d32;}"):
-    if st.button("✨ ระบบประเมินคาร์บอนรายวัน (Daily Carbon Footprint)"):
-        st.link_button("👉 คลิกเพื่อเข้าสู่ระบบประเมิน", "https://6ezbjfuuk36bisipg8y8bh.streamlit.app/")
+with col_left:
+    st.subheader("🚗 พาหนะหลักวันนี้")
+    transport = st.selectbox("ประเภทรถ", ["รถยนต์ส่วนตัว (น้ำมัน)", "รถยนต์ไฟฟ้า (EV)", "รถจักรยานยนต์", "รถเมล์/ขนส่งสาธารณะ"], key="trans")
+    distance = st.number_input("ระยะทางรวม (กิโลเมตร)", min_value=0.0, value=10.0, step=0.1)
 
-st.write("---")
+    st.write("---")
+    st.subheader("💡 พลังงาน")
+    air_con = st.slider("เปิดแอร์วันนี้ (ชั่วโมง)", 0, 24, 0)
 
-st.subheader("📊 ข้อมูลวิเคราะห์และคลังความรู้")
-col1, col2 = st.columns(2)
+with col_right:
+    st.subheader("🍽️ อาหาร 3 มื้อ")
+    breakfast = st.text_input("มื้อเช้า", placeholder="เช่น ข้าวเหนียวหมูปิ้ง")
+    lunch = st.text_input("มื้อกลางวัน", placeholder="เช่น ข้าวกะเพราเนื้อ")
+    dinner = st.text_input("มื้อเย็น", placeholder="เช่น สลัดผัก")
 
-with col1:
-    with stylable_container(key="c1", css_styles="button {background-color: #ffffff;}"):
-        if st.button("📈 GHG Dashboard\n(วิเคราะห์ก๊าซเรือนกระจก)"):
-            st.link_button("👉 ดูข้อมูลวิเคราะห์", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
-
-with col2:
-    with stylable_container(key="c2", css_styles="button {background-color: #ffffff;}"):
-        if st.button("📚 คลังความรู้ TGO\n(Knowledge Center)"):
-            st.link_button("👉 เข้าสู่คลังความรู้", "https://www.tgo.or.th/")
-
-st.write("---")
-
-# 6. ระบบ AI ChatBot (ส่วนที่เพิ่มกลับมา)
-st.subheader("💬 สอบถามเพิ่มเติม")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# แสดงประวัติการแชท
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# ช่องรับคำถาม
-if prompt := st.chat_input("พิมพ์คำถามที่นี่... (เช่น คาร์บอนเครดิตคืออะไร?)"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
+# 5. ปุ่มประเมินผล
+st.write("")
+if st.button("🚀 ประเมินผลลัพธ์และดูแนวทาง", use_container_width=True):
+    with st.spinner('กำลังคำนวณและให้ AI วิเคราะห์...'):
+        # ส่งข้อมูลให้ AI วิเคราะห์
+        user_data = f"""
+        ข้อมูลการใช้ชีวิตวันนี้:
+        - พาหนะ: {transport} ระยะทาง {distance} กม.
+        - พลังงาน: เปิดแอร์ {air_con} ชม.
+        - อาหาร: เช้า({breakfast}), กลางวัน({lunch}), เย็น({dinner})
+        """
         try:
-            # ให้ AI ตอบโดยเน้นบริบทเรื่อง Climate/TGO
-            full_prompt = f"คุณคือผู้เชี่ยวชาญด้านก๊าซเรือนกระจกของ TGO จงตอบคำถามนี้: {prompt}"
-            response = model.generate_content(full_prompt)
+            response = model.generate_content(f"วิเคราะห์การปล่อยคาร์บอนและแนะนำวิธีลดแบบสั้นๆ จากข้อมูลนี้: {user_data}")
+            st.success("✅ วิเคราะห์เสร็จสิ้น!")
             st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"AI ไม่สามารถตอบได้ในขณะนี้: {e}")
+        except:
+            st.write("ผลการประเมินเบื้องต้น: คุณมีการปล่อยคาร์บอนอยู่ในเกณฑ์ปกติ")
+
+st.write("---")
+
+# 6. ส่วนล่าง (Dashboard เดิม)
+st.subheader("📊 ข้อมูลวิเคราะห์เพิ่มเติม")
+c1, c2 = st.columns(2)
+with c1:
+    st.link_button("📈 ดู GHG Dashboard", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/", use_container_width=True)
+with c2:
+    st.link_button("📚 คลังความรู้ TGO", "https://www.tgo.or.th/", use_container_width=True)
