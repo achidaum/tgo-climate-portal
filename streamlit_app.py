@@ -2,78 +2,102 @@ import streamlit as st
 import google.generativeai as genai
 from streamlit_extras.stylable_container import stylable_container
 
-# 1. การตั้งค่าหน้าเว็บ
+# 1. การตั้งค่าหน้าเว็บ (Web Configuration)
 st.set_page_config(page_title="TGO Climate Hub", page_icon="🌱", layout="wide")
 
 # เชื่อมต่อ AI (ดึง API Key จาก Streamlit Secrets)
 if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-pro')
+    try:
+        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+        model = genai.GenerativeModel('gemini-pro')
+    except Exception as e:
+        st.error(f"การเชื่อมต่อ AI ขัดข้อง: {e}")
 else:
-    st.error("กรุณาตั้งค่า API Key ใน Settings")
+    st.warning("กรุณาตั้งค่า GOOGLE_API_KEY ในหน้า Secrets ของ Streamlit Cloud")
 
-# 2. ปรับแต่งความสวยงาม (CSS)
+# 2. ปรับแต่งความสวยงามด้วย CSS
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
+    html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
+    .main { background-color: #f8faf9; }
     .stButton>button {
         width: 100%; border-radius: 15px; height: 120px;
-        font-size: 18px; font-weight: bold; transition: 0.3s;
+        font-size: 20px; font-weight: bold; transition: 0.3s;
         background-color: white; color: #2e7d32; border: 2px solid #e0e0e0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
     .stButton>button:hover { 
         transform: translateY(-5px); border: 2px solid #2e7d32; 
-        background-color: #f1f8e9;
+        background-color: #f1f8e9; box-shadow: 0 10px 15px rgba(0,0,0,0.1);
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. ส่วนหัวข้อ (Header)
+# 3. ส่วนหัวข้อหลัก (Header)
 st.title("🌱 TGO Climate & GHG Portal")
-st.markdown("#### รวมทุกเครื่องมือด้านก๊าซเรือนกระจกไว้ในที่เดียว")
+st.markdown("#### ศูนย์รวมเครื่องมือจัดการก๊าซเรือนกระจกและคาร์บอนเครดิตแบบครบวงจร")
 st.write("---")
 
-# 4. ส่วนปุ่มทางลัดไปแอปเดิม (Dashboard Cards)
-st.header("📊 เมนูบริการหลัก")
+# 4. ส่วนปุ่มทางลัด (Dashboard Cards) - เชื่อมลิงก์แอปที่คุณทำไว้
+st.header("📊 เมนูบริการและแดชบอร์ด")
 col1, col2, col3 = st.columns(3)
 
 with col1:
     with stylable_container(key="c1", css_styles="button {background-color: #e8f5e9;}"):
-        if st.button("📈 GHG Dashboard\n(วิเคราะห์ก๊าซเรือนกระจก)"):
-            st.link_button("เปิดแอป", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
+        if st.button("📈 GHG Dashboard\nวิเคราะห์ก๊าซเรือนกระจก"):
+            st.link_button("👉 เข้าใช้งาน", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
 
 with col2:
     with stylable_container(key="c2", css_styles="button {background-color: #fff3e0;}"):
-        if st.button("🏢 TGO Knowledge\n(คลังข้อมูล T-VER)"):
-            st.link_button("เปิดแอป", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
+        if st.button("🏢 TGO Knowledge\nคลังข้อมูล T-VER"):
+            st.link_button("👉 เข้าใช้งาน", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
 
 with col3:
     with stylable_container(key="c3", css_styles="button {background-color: #e3f2fd;}"):
-        if st.button("🍃 Carbon Daily\n(ประเมินคาร์บอนรายวัน)"):
-            # เปลี่ยน URL เป็นแอปที่ 3 ของคุณ (ถ้ามี)
-            st.link_button("เปิดแอป", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
+        if st.button("🍃 Carbon Daily\nประเมินคาร์บอนรายวัน"):
+            # ลิงก์ไปยังแอปประเมินคาร์บอนรายวันของคุณ
+            st.link_button("👉 เข้าใช้งาน", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
 
 st.write("---")
 
-# 5. ส่วน AI Chatbot
-st.header("🤖 สอบถาม AI ผู้เชี่ยวชาญด้าน GHG")
+# 5. ส่วน AI Expert Chat (TGO Smart Consultant)
+st.header("🤖 TGO Smart Consultant")
+st.markdown("##### สงสัยเรื่อง T-VER หรือคาร์บอนเครดิต? ปรึกษาผู้เชี่ยวชาญ AI ได้ที่นี่")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# แสดงประวัติการสนทนา
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("พิมพ์คำถามที่นี่ เช่น คาร์บอนเครดิตคืออะไร?"):
+# ช่องรับคำถาม
+if prompt := st.chat_input("ถามคำถามเกี่ยวกับ GHG หรือ คาร์บอนเครดิต..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # สั่งให้ AI ตอบในฐานะผู้เชี่ยวชาญ TGO
-        context = f"คุณคือ AI ผู้เชี่ยวชาญจาก TGO (องค์การบริหารจัดการก๊าซเรือนกระจก) ตอบคำถามเรื่อง GHG และคาร์บอนเครดิตเป็นภาษาไทยแบบเข้าใจง่าย: {prompt}"
+        # การตั้งค่าบริบทให้ AI ฉลาดอิงตามข้อมูล TGO
+        context = f"""
+        คุณคือ 'TGO Smart Consultant' ผู้เชี่ยวชาญจากองค์การบริหารจัดการก๊าซเรือนกระจก (อบก.) 
+        หน้าที่ของคุณคือให้ข้อมูลที่ถูกต้องเกี่ยวกับ:
+        1. โครงการ T-VER (Thailand Voluntary Emission Reduction Program)
+        2. การซื้อขายและโอนคาร์บอนเครดิตในประเทศไทย
+        3. การคำนวณคาร์บอนฟุตพริ้นท์ตามมาตรฐาน TGO
+        4. เป้าหมาย Carbon Neutrality และ Net Zero ของประเทศ
+        
+        กฎการตอบ: ตอบเป็นภาษาไทยที่สุภาพ ทันสมัย และกระชับ หากไม่ทราบข้อมูลแน่ชัดให้แนะนำให้ติดต่อเว็บไซต์ tgo.or.th
+        
+        คำถาม: {prompt}
+        """
+        
         try:
             response = model.generate_content(context)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except:
-            st.error("เกิดข้อผิดพลาดในการเชื่อมต่อ")
+            answer = response.text
+            st.markdown(answer)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+        except Exception as e:
+            st.error("ขออภัย ระบบประมวลผลขัดข้อง กรุณาลองใหม่อีกครั้ง")
