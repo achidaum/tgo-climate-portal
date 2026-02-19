@@ -1,103 +1,71 @@
 import streamlit as st
 import google.generativeai as genai
-from streamlit_extras.stylable_container import stylable_container
 
-# 1. การตั้งค่าหน้าเว็บ (Web Configuration)
+# 1. การตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="TGO Climate Hub", page_icon="🌱", layout="wide")
 
-# เชื่อมต่อ AI (ดึง API Key จาก Streamlit Secrets)
+# เชื่อมต่อ AI
 if "GOOGLE_API_KEY" in st.secrets:
     try:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
         model = genai.GenerativeModel('gemini-pro')
     except Exception as e:
-        st.error(f"การเชื่อมต่อ AI ขัดข้อง: {e}")
+        st.error(f"การเชื่อมต่อ AI ขัดข้อง")
 else:
-    st.warning("กรุณาตั้งค่า GOOGLE_API_KEY ในหน้า Secrets ของ Streamlit Cloud")
+    st.warning("กรุณาตั้งค่า API Key ใน Secrets")
 
-# 2. ปรับแต่งความสวยงามด้วย CSS
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
-    html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
-    .main { background-color: #f8faf9; }
-    .stButton>button {
-        width: 100%; border-radius: 15px; height: 120px;
-        font-size: 20px; font-weight: bold; transition: 0.3s;
-        background-color: white; color: #2e7d32; border: 2px solid #e0e0e0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .stButton>button:hover { 
-        transform: translateY(-5px); border: 2px solid #2e7d32; 
-        background-color: #f1f8e9; box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# 3. ส่วนหัวข้อหลัก (Header)
+# 2. ส่วนหัวข้อหลัก
 st.title("🌱 TGO Climate & GHG Portal")
 st.markdown("#### ศูนย์รวมเครื่องมือจัดการก๊าซเรือนกระจกและคาร์บอนเครดิตแบบครบวงจร")
 st.write("---")
 
-# 4. ส่วนปุ่มทางลัด (Dashboard Cards) - เชื่อมลิงก์แอปที่คุณทำไว้
-st.header("📊 เมนูบริการและแดชบอร์ด")
-col1, col2, col3 = st.columns(3)
+# 3. ส่วน AI Chatbot (ย้ายขึ้นมาให้เข้าถึงง่าย)
+with st.expander("🤖 ปรึกษาผู้เชี่ยวชาญ AI ด้านคาร์บอน (คลิกเพื่อเปิด/ปิด)", expanded=False):
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-with col1:
-    with stylable_container(key="c1", css_styles="button {background-color: #e8f5e9;}"):
-        if st.button("📈 Green House Gas ก๊าซเรือนกระจก"):
-            st.link_button("👉 คลิกเพื่อดู", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-with col2:
-    with stylable_container(key="c2", css_styles="button {background-color: #fff3e0;}"):
-        if st.button("🏢 TGO "):
-            st.link_button("👉 คลิกเพื่อดู", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
-
-with col3:
-    with stylable_container(key="c3", css_styles="button {background-color: #e3f2fd;}"):
-        if st.button("🍃 ประเมินคาร์บอนรายวัน"):
-            # ลิงก์ไปยังแอปประเมินคาร์บอนรายวันของคุณ
-            st.link_button("👉 คลิกเพื่อดู", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
+    if prompt := st.chat_input("ถามคำถามเกี่ยวกับ GHG หรือ คาร์บอนเครดิต..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        with st.chat_message("assistant"):
+            context = f"คุณคือผู้เชี่ยวชาญจาก TGO ตอบคำถามเรื่อง GHG และคาร์บอนเครดิตเป็นภาษาไทยแบบมืออาชีพ: {prompt}"
+            try:
+                response = model.generate_content(context)
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except:
+                st.error("AI ไม่สามารถตอบได้ในขณะนี้")
 
 st.write("---")
 
-# 5. ส่วน AI Expert Chat (TGO Smart Consultant)
-st.header("🤖 TGO Smart Consultant")
-st.markdown("##### สงสัยเรื่อง T-VER หรือคาร์บอนเครดิต? ปรึกษาผู้เชี่ยวชาญ AI ได้ที่นี่")
+# 4. ส่วน Dashboard (แบบโชว์หน้าเว็บเลย)
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# --- แถวที่ 1: ประเมินคาร์บอนรายวัน (เด่นที่สุด) ---
+st.header("🍃 ระบบประเมินคาร์บอนรายวัน")
+# ฝังหน้าเว็บแอปประเมินคาร์บอน
+st.components.v1.iframe("https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/?embed=true", height=600, scrolling=True)
 
-# แสดงประวัติการสนทนา
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+st.write("---")
 
-# ช่องรับคำถาม
-if prompt := st.chat_input("ถามคำถามเกี่ยวกับ GHG หรือ คาร์บอนเครดิต..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+# --- แถวที่ 2: อีก 2 แอปวางคู่กัน ---
+st.header("📊 ข้อมูลวิเคราะห์และคลังความรู้")
+col1, col2 = st.columns(2)
 
-    with st.chat_message("assistant"):
-        # การตั้งค่าบริบทให้ AI ฉลาดอิงตามข้อมูล TGO
-        context = f"""
-        คุณคือ 'TGO Smart Consultant' ผู้เชี่ยวชาญจากองค์การบริหารจัดการก๊าซเรือนกระจก (อบก.) 
-        หน้าที่ของคุณคือให้ข้อมูลที่ถูกต้องเกี่ยวกับ:
-        1. โครงการ T-VER (Thailand Voluntary Emission Reduction Program)
-        2. การซื้อขายและโอนคาร์บอนเครดิตในประเทศไทย
-        3. การคำนวณคาร์บอนฟุตพริ้นท์ตามมาตรฐาน TGO
-        4. เป้าหมาย Carbon Neutrality และ Net Zero ของประเทศ
-        
-        กฎการตอบ: ตอบเป็นภาษาไทยที่สุภาพ ทันสมัย และกระชับ หากไม่ทราบข้อมูลแน่ชัดให้แนะนำให้ติดต่อเว็บไซต์ tgo.or.th
-        
-        คำถาม: {prompt}
-        """
-        
-        try:
-            response = model.generate_content(context)
-            answer = response.text
-            st.markdown(answer)
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-        except Exception as e:
-            st.error("ขออภัย ระบบประมวลผลขัดข้อง กรุณาลองใหม่อีกครั้ง")
+with col1:
+    st.subheader("📈 Green House Gas Dashboard")
+    # ฝังหน้าเว็บแอป GHG
+    st.components.v1.iframe("https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/?embed=true", height=500, scrolling=True)
+
+with col2:
+    st.subheader("🏢 TGO Knowledge Base")
+    # ฝังหน้าเว็บแอป TGO Knowledge
+    st.components.v1.iframe("https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/?embed=true", height=500, scrolling=True)
+
+# 5. ส่วนท้าย
+st.write("---")
+st.caption("© 2026 TGO Climate Hub | ข้อมูลอ้างอิงมาตรฐานองค์การบริหารจัดการก๊าซเรือนกระจก")
