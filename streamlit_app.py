@@ -54,4 +54,60 @@ with col_left:
 
 with col_right:
     st.subheader("🍽️ อาหาร 3 มื้อ")
-    breakfast = st.text
+    breakfast = st.text_input("มื้อเช้า", placeholder="เช่น ข้าวเหนียวหมูปิ้ง")
+    lunch = st.text_input("มื้อกลางวัน", placeholder="เช่น ข้าวกะเพราเนื้อ")
+    dinner = st.text_input("มื้อเย็น", placeholder="เช่น สลัดผัก")
+
+# ปุ่มประเมินผล
+if st.button("🚀 ประเมินผลลัพธ์และดูแนวทาง", use_container_width=True):
+    with st.spinner('AI กำลังวิเคราะห์ข้อมูลของคุณ...'):
+        calc_prompt = f"วิเคราะห์การปล่อยคาร์บอน: {transport} {distance}กม., แอร์ {air_con}ชม., อาหาร({breakfast}, {lunch}, {dinner}) ให้คำแนะนำสั้นๆ"
+        try:
+            res = model.generate_content(calc_prompt)
+            st.success("✅ ผลการวิเคราะห์จาก AI")
+            st.write(res.text)
+        except:
+            st.error("ไม่สามารถเชื่อมต่อ AI เพื่อประเมินผลได้")
+
+st.write("---")
+
+# 6. ส่วนข้อมูลวิเคราะห์และคลังความรู้ TGO (กลับมาแล้ว!)
+st.subheader("📊 ข้อมูลวิเคราะห์และคลังความรู้")
+c1, c2 = st.columns(2)
+
+with c1:
+    with stylable_container(key="c1", css_styles="button {background-color: #ffffff;}"):
+        if st.button("📈 GHG Dashboard\n(วิเคราะห์ก๊าซเรือนกระจก)"):
+            st.link_button("👉 ดูข้อมูลวิเคราะห์", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
+
+with c2:
+    with stylable_container(key="c2", css_styles="button {background-color: #ffffff;}"):
+        if st.button("📚 คลังความรู้ TGO\n(Knowledge Center)"):
+            st.link_button("👉 เข้าสู่คลังความรู้", "https://www.tgo.or.th/")
+
+st.write("---")
+
+# 7. ระบบ AI ChatBot (ช่องถามคำถาม)
+st.subheader("💬 สอบถาม AI เกี่ยวกับก๊าซเรือนกระจก")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# แสดงประวัติการสนทนา
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ช่องรับคำถาม (จะอยู่ล่างสุดเสมอ)
+if prompt := st.chat_input("พิมพ์คำถามที่นี่..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        try:
+            chat_response = model.generate_content(f"คุณคือผู้เชี่ยวชาญจาก TGO ตอบคำถามนี้: {prompt}")
+            st.markdown(chat_response.text)
+            st.session_state.messages.append({"role": "assistant", "content": chat_response.text})
+        except:
+            st.error("AI ขัดข้องเล็กน้อย")
