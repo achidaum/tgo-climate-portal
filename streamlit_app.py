@@ -45,19 +45,19 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     with stylable_container(key="c1", css_styles="button {background-color: #e8f5e9;}"):
-        if st.button("📈 GHG Dashboard\nวิเคราะห์ก๊าซเรือนกระจก"):
-            st.link_button("👉 เข้าใช้งาน", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
+        if st.button("📈 Green House Gas ก๊าซเรือนกระจก"):
+            st.link_button("👉 คลิกเพื่อดู", "https://gdp-dashboard-bgjbpkmeptcvbrbv5ardrm.streamlit.app/")
 
 with col2:
     with stylable_container(key="c2", css_styles="button {background-color: #fff3e0;}"):
-        if st.button("🏢 TGO Knowledge\nคลังข้อมูล T-VER"):
-            st.link_button("👉 เข้าใช้งาน", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
+        if st.button("🏢 TGO "):
+            st.link_button("👉 คลิกเพื่อดู", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
 
 with col3:
     with stylable_container(key="c3", css_styles="button {background-color: #e3f2fd;}"):
-        if st.button("🍃 Carbon Daily\nประเมินคาร์บอนรายวัน"):
+        if st.button("🍃 ประเมินคาร์บอนรายวัน"):
             # ลิงก์ไปยังแอปประเมินคาร์บอนรายวันของคุณ
-            st.link_button("👉 เข้าใช้งาน", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
+            st.link_button("👉 คลิกเพื่อดู", "https://tgo-website-nzgnbksnlc2zc2nzf8yeec.streamlit.app/")
 
 st.write("---")
 
