@@ -76,4 +76,4 @@ if prompt := st.chat_input("พิมพ์คำถามที่นี่ เ
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except:
-            st.error("เกิดข้อผิดพลาดในการเชื่อมต่อ
+            st.error("เกิดข้อผิดพลาดในการเชื่อมต่อ")
